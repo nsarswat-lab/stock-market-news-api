@@ -9,9 +9,11 @@ const API_BASE_URL = 'http://localhost:8080/api/v1';
 
 function App() {
   const [news, setNews] = useState<NewsItem[]>([]);
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [intradayRecommendations, setIntradayRecommendations] = useState<Recommendation[]>([]);
+  const [longTermRecommendations, setLongTermRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'intraday' | 'longterm'>('intraday');
 
   const fetchNews = async () => {
     try {
@@ -25,15 +27,27 @@ function App() {
     }
   };
 
-  const fetchRecommendations = async () => {
+  const fetchIntradayRecommendations = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/recommendations`);
-      if (!response.ok) throw new Error('Failed to fetch recommendations');
+      const response = await fetch(`${API_BASE_URL}/recommendations/intraday`);
+      if (!response.ok) throw new Error('Failed to fetch intraday recommendations');
       const data: ApiResponse<Recommendation[]> = await response.json();
-      setRecommendations(data.recommendations || []);
+      setIntradayRecommendations(data.recommendations || []);
     } catch (err) {
-      console.error('Error fetching recommendations:', err);
-      setError('Failed to load recommendations');
+      console.error('Error fetching intraday recommendations:', err);
+      setError('Failed to load intraday recommendations');
+    }
+  };
+
+  const fetchLongTermRecommendations = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/recommendations/longterm`);
+      if (!response.ok) throw new Error('Failed to fetch long-term recommendations');
+      const data: ApiResponse<Recommendation[]> = await response.json();
+      setLongTermRecommendations(data.recommendations || []);
+    } catch (err) {
+      console.error('Error fetching long-term recommendations:', err);
+      setError('Failed to load long-term recommendations');
     }
   };
 
@@ -41,7 +55,7 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      await Promise.all([fetchNews(), fetchRecommendations()]);
+      await Promise.all([fetchNews(), fetchIntradayRecommendations(), fetchLongTermRecommendations()]);
     } finally {
       setLoading(false);
     }
@@ -86,14 +100,55 @@ function App() {
         </section>
 
         <section className="recommendations-section">
-          <h2>💡 Trading Recommendations</h2>
-          <div className="cards-grid">
-            {recommendations.length > 0 ? (
-              recommendations.map((rec, index) => (
-                <RecommendationCard key={`${rec.symbol}-${index}`} recommendation={rec} />
-              ))
-            ) : (
-              <p className="no-data">No recommendations available</p>
+          <div className="recommendations-header">
+            <h2>💡 Trading & Investment Recommendations</h2>
+            <div className="tab-buttons">
+              <button 
+                className={`tab-btn ${activeTab === 'intraday' ? 'active' : ''}`}
+                onClick={() => setActiveTab('intraday')}
+              >
+                ⚡ Intraday Trading
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'longterm' ? 'active' : ''}`}
+                onClick={() => setActiveTab('longterm')}
+              >
+                📈 Long-term Investment
+              </button>
+            </div>
+          </div>
+          
+          <div className="tab-content">
+            {activeTab === 'intraday' && (
+              <div className="cards-grid">
+                {intradayRecommendations.length > 0 ? (
+                  intradayRecommendations.map((rec, index) => (
+                    <RecommendationCard 
+                      key={`intraday-${rec.symbol}-${index}`} 
+                      recommendation={rec} 
+                      type="intraday"
+                    />
+                  ))
+                ) : (
+                  <p className="no-data">No intraday recommendations available</p>
+                )}
+              </div>
+            )}
+            
+            {activeTab === 'longterm' && (
+              <div className="cards-grid">
+                {longTermRecommendations.length > 0 ? (
+                  longTermRecommendations.map((rec, index) => (
+                    <RecommendationCard 
+                      key={`longterm-${rec.symbol}-${index}`} 
+                      recommendation={rec} 
+                      type="longterm"
+                    />
+                  ))
+                ) : (
+                  <p className="no-data">No long-term recommendations available</p>
+                )}
+              </div>
             )}
           </div>
         </section>
