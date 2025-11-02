@@ -32,7 +32,15 @@ const NewsCard: React.FC<NewsCardProps> = ({ news }) => {
       </div>
       <h3 className="news-headline">{news.headline}</h3>
       <div className="news-footer">
-        <span className="news-source">📰 {news.source}</span>
+        <a 
+          href={news.url} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="news-source-link"
+          onClick={(e) => e.stopPropagation()}
+        >
+          📰 {news.source}
+        </a>
       </div>
     </div>
   );

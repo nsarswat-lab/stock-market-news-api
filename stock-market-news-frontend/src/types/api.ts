@@ -4,6 +4,7 @@ export interface NewsItem {
   headline: string;
   sentiment: 'positive' | 'negative' | 'neutral';
   source: string;
+  url: string;
 }
 
 export interface Recommendation {
