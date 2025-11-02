@@ -2,6 +2,7 @@ package com.stockmarket.controller;
 
 import com.stockmarket.service.StockNewsService;
 import com.stockmarket.service.TradingRecommendationService;
+import com.stockmarket.service.IndianMarketFactorsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class NewsController {
     
     @Autowired
     private TradingRecommendationService recommendationService;
+    
+    @Autowired
+    private IndianMarketFactorsService marketFactorsService;
     
     @GetMapping("/news")
     public ResponseEntity<Map<String, Object>> getStockNews() {
@@ -56,6 +60,26 @@ public class NewsController {
         );
         
         logger.debug("💡 REAL API: Returning {} recommendations", recommendations.size());
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/market-factors")
+    public ResponseEntity<Map<String, Object>> getIndianMarketFactors() {
+        logger.debug("🇮🇳 Getting Indian market factors and analysis");
+        
+        List<Map<String, Object>> factors = marketFactorsService.getMarketFactors();
+        Map<String, Object> outlook = marketFactorsService.getMarketOutlook();
+        
+        Map<String, Object> response = Map.of(
+            "dataSource", "INDIAN_MARKET_ANALYSIS",
+            "mockType", "market-intelligence",
+            "mockIndicator", "🇮🇳 INDIAN MARKET INTELLIGENCE",
+            "factors", factors,
+            "outlook", outlook,
+            "timestamp", System.currentTimeMillis()
+        );
+        
+        logger.debug("🇮🇳 INDIAN MARKET: Returning {} factors", factors.size());
         return ResponseEntity.ok(response);
     }
 }
