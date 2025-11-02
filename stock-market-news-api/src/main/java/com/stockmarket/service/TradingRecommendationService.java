@@ -31,7 +31,7 @@ public class TradingRecommendationService {
     public List<Map<String, Object>> getIntradayRecommendations() {
         logger.debug("💡 Generating trading recommendations based on real market data");
         
-        String[] symbols = {"AAPL", "TSLA", "MSFT", "GOOGL", "AMZN"};
+        String[] symbols = {"RELIANCE.BSE", "TCS.BSE", "HDFCBANK.BSE", "INFY.BSE", "ITC.BSE"};
         List<Map<String, Object>> recommendations = new ArrayList<>();
         
         for (String symbol : symbols) {
@@ -143,7 +143,8 @@ public class TradingRecommendationService {
             default -> 1.02; // 2% modest target for HOLD
         };
         
-        return String.format("%.2f", currentPrice * multiplier);
+        double targetPrice = currentPrice * multiplier;
+        return String.format("₹%.0f", targetPrice);
     }
     
     private String generateReason(double changePercent, String action) {
@@ -162,9 +163,11 @@ public class TradingRecommendationService {
     
     private List<Map<String, Object>> getFallbackRecommendations() {
         return Arrays.asList(
-            Map.of("symbol", "AAPL", "action", "BUY", "confidence", "MEDIUM", "target", "175.50", "reason", "Technical analysis suggests upward trend"),
-            Map.of("symbol", "MSFT", "action", "HOLD", "confidence", "HIGH", "target", "380.00", "reason", "Strong fundamentals, wait for better entry"),
-            Map.of("symbol", "TSLA", "action", "HOLD", "confidence", "LOW", "target", "220.00", "reason", "High volatility requires caution")
+            Map.of("symbol", "RELIANCE", "action", "BUY", "confidence", "HIGH", "target", "₹2,850", "reason", "Strong refining margins, Jio monetization improving, Oil-to-Chemical strategy paying off"),
+            Map.of("symbol", "TCS", "action", "HOLD", "confidence", "MEDIUM", "target", "₹4,200", "reason", "Margin pressure from wage hikes, but large deal pipeline strong, wait for better entry"),
+            Map.of("symbol", "HDFCBANK", "action", "BUY", "confidence", "HIGH", "target", "₹1,750", "reason", "Post-merger integration complete, NIM expansion, credit costs normalizing"),
+            Map.of("symbol", "INFY", "action", "HOLD", "confidence", "MEDIUM", "target", "₹1,650", "reason", "Client spending cautious, but automation driving margin expansion"),
+            Map.of("symbol", "ITC", "action", "SELL", "confidence", "LOW", "target", "₹420", "reason", "Cigarette volume decline, FMCG competition intense, ESG concerns persist")
         );
     }
 }
