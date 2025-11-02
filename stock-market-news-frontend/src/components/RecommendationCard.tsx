@@ -43,7 +43,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ recommendation 
       </div>
       <div className="recommendation-details">
         <div className="target-price">
-          🎯 Target: ${recommendation.target}
+          🎯 Target: {recommendation.target}
         </div>
         <div className={`confidence ${getConfidenceClass(recommendation.confidence)}`}>
           📊 Confidence: {recommendation.confidence}
