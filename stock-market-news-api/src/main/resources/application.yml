@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+# Alpha Vantage API Configuration
+alphavantage:
+  api:
+    key: JIUJN8WR7W9Y7E5C
+
+# Debug settings for development
+logging:
+  level:
+    com.stockmarket: DEBUG
+    org.springframework.web: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Enable debug endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,loggers

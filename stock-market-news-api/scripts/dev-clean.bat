@@ -1,0 +1,3 @@
+@echo off
+echo 🧹 Cleaning up...
+taskkill /F /IM java.exe 2>nul || echo No Java processes to kill
