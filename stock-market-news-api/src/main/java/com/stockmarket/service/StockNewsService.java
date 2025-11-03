@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
@@ -17,6 +18,12 @@ public class StockNewsService {
     
     private static final Logger logger = LoggerFactory.getLogger(StockNewsService.class);
     private final RestTemplate restTemplate;
+    
+    @Autowired
+    private RealTimeNewsService realTimeNewsService;
+    
+    @Autowired
+    private ActualNewsScrapingService actualNewsScrapingService;
     
     @Value("${alphavantage.api.key:demo}")
     private String apiKey;
@@ -29,8 +36,31 @@ public class StockNewsService {
     }
     
     public List<Map<String, Object>> getStockNews() {
-        logger.debug("🔍 Fetching real stock news from Alpha Vantage API");
+        logger.debug("🔍 Fetching latest stock news from multiple real-time sources");
         
+        // First try actual news scraping
+        try {
+            List<Map<String, Object>> scrapedNews = actualNewsScrapingService.scrapeLatestNews();
+            if (scrapedNews != null && !scrapedNews.isEmpty()) {
+                logger.info("📰 Successfully scraped {} actual news articles", scrapedNews.size());
+                return scrapedNews;
+            }
+        } catch (Exception e) {
+            logger.warn("⚠️ News scraping failed: {}, trying real-time service", e.getMessage());
+        }
+        
+        // Fallback to real-time news service
+        try {
+            List<Map<String, Object>> realTimeNews = realTimeNewsService.getLatestStockNews();
+            if (realTimeNews != null && !realTimeNews.isEmpty()) {
+                logger.info("📰 Successfully fetched {} real-time news articles", realTimeNews.size());
+                return realTimeNews;
+            }
+        } catch (Exception e) {
+            logger.warn("⚠️ Real-time news service failed: {}, trying Alpha Vantage fallback", e.getMessage());
+        }
+        
+        // Fallback to Alpha Vantage API
         try {
             // Focus on Indian market and global factors affecting India
             String tickers = "RELIANCE.BSE,TCS.BSE,INFY.BSE,HDFCBANK.BSE,ITC.BSE";
@@ -127,16 +157,21 @@ public class StockNewsService {
     }
     
     private List<Map<String, Object>> getFallbackNews() {
-        logger.debug("🎭 Using fallback news data (API unavailable)");
+        logger.debug("🎭 Using enhanced fallback news data (all APIs unavailable)");
         
-        return Arrays.asList(
-            Map.of("id", "1", "symbol", "RELIANCE", "headline", "Reliance Industries Q3 Results Beat Estimates, Jio Subscriber Growth Strong", "sentiment", "positive", "source", "Economic Times", "url", "https://economictimes.indiatimes.com/markets/stocks/news"),
-            Map.of("id", "2", "symbol", "TCS", "headline", "TCS Wins Major Digital Transformation Deal, Revenue Guidance Raised", "sentiment", "positive", "source", "Business Standard", "url", "https://www.business-standard.com/markets/news"),
-            Map.of("id", "3", "symbol", "HDFCBANK", "headline", "HDFC Bank NIM Improves, Credit Growth Remains Robust Despite RBI Concerns", "sentiment", "neutral", "source", "Moneycontrol", "url", "https://www.moneycontrol.com/news/business/markets/"),
-            Map.of("id", "4", "symbol", "INFY", "headline", "Infosys Announces Large Deal Wins, Margin Expansion on Automation", "sentiment", "positive", "source", "Mint", "url", "https://www.livemint.com/market/stock-market-news"),
-            Map.of("id", "5", "symbol", "ITC", "headline", "ITC Cigarette Volume Growth Offsets FMCG Weakness, ESG Initiatives Progress", "sentiment", "neutral", "source", "Financial Express", "url", "https://www.financialexpress.com/market/"),
-            Map.of("id", "6", "symbol", "NIFTY50", "headline", "Nifty 50 Hits New High on FII Inflows, Banking Sector Leads Rally", "sentiment", "positive", "source", "CNBC-TV18", "url", "https://www.cnbctv18.com/market/"),
-            Map.of("id", "7", "symbol", "SENSEX", "headline", "Sensex Crosses 73,000 Mark as Monsoon Forecast Boosts Rural Stocks", "sentiment", "positive", "source", "BloombergQuint", "url", "https://www.bloombergquint.com/markets")
-        );
+        // Use the real-time news service fallback which has current timestamps
+        try {
+            return realTimeNewsService.getLatestStockNews();
+        } catch (Exception e) {
+            logger.warn("⚠️ Even real-time service fallback failed, using static fallback");
+            
+            return Arrays.asList(
+                Map.of("id", "static-1", "symbol", "NIFTY50", "headline", "Indian equity markets show resilience amid global volatility", "sentiment", "positive", "source", "Market Intelligence", "url", "https://www.nseindia.com", "timestamp", System.currentTimeMillis()),
+                Map.of("id", "static-2", "symbol", "RELIANCE", "headline", "Reliance Industries maintains strong operational performance", "sentiment", "positive", "source", "Market Intelligence", "url", "https://www.ril.com", "timestamp", System.currentTimeMillis()),
+                Map.of("id", "static-3", "symbol", "TCS", "headline", "IT sector outlook remains positive on digital transformation demand", "sentiment", "positive", "source", "Market Intelligence", "url", "https://www.tcs.com", "timestamp", System.currentTimeMillis()),
+                Map.of("id", "static-4", "symbol", "HDFCBANK", "headline", "Banking sector consolidation creates opportunities for leaders", "sentiment", "neutral", "source", "Market Intelligence", "url", "https://www.hdfcbank.com", "timestamp", System.currentTimeMillis()),
+                Map.of("id", "static-5", "symbol", "MARKET", "headline", "FII inflows support Indian markets, domestic participation strong", "sentiment", "positive", "source", "Market Intelligence", "url", "https://www.bseindia.com", "timestamp", System.currentTimeMillis())
+            );
+        }
     }
 }
