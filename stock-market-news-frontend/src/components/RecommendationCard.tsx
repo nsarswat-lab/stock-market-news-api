@@ -6,7 +6,11 @@ interface RecommendationCardProps {
   type?: 'intraday' | 'longterm';
 }
 
-const RecommendationCard: React.FC<RecommendationCardProps> = ({ recommendation, type = 'intraday' }) => {
+interface RecommendationCardPropsWithMock extends RecommendationCardProps {
+  mockIndicator?: string;
+}
+
+const RecommendationCard: React.FC<RecommendationCardPropsWithMock> = ({ recommendation, type = 'intraday', mockIndicator }) => {
   const getActionEmoji = (action: string) => {
     switch (action) {
       case 'BUY': return '🟢';
@@ -38,6 +42,11 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ recommendation,
 
   return (
     <div className={`recommendation-card ${type}-card`}>
+      {mockIndicator && (
+        <div className="mock-indicator">
+          {mockIndicator}
+        </div>
+      )}
       <div className="recommendation-header">
         <span className="stock-symbol">{recommendation.symbol}</span>
         <span className={`action ${getActionClass(recommendation.action)}`}>
@@ -54,6 +63,30 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ recommendation,
         </div>
       </div>
 
+      {/* Market Data Section */}
+      {(recommendation.dayHigh || recommendation.dayLow || recommendation.previousClose) && (
+        <div className="market-data">
+          <h4>📈 Market Data</h4>
+          <div className="market-data-grid">
+            {recommendation.dayHigh && recommendation.dayLow && (
+              <div className="market-item">
+                📊 Day Range: ₹{recommendation.dayLow} - ₹{recommendation.dayHigh}
+              </div>
+            )}
+            {recommendation.previousClose && (
+              <div className="market-item">
+                🔄 Prev Close: ₹{recommendation.previousClose}
+              </div>
+            )}
+            {recommendation.currentVolume && (
+              <div className="market-item">
+                📦 Volume: {(Number(recommendation.currentVolume) / 1000000).toFixed(1)}M
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {recommendation.timeframe && (
         <div className="timeframe">
           ⏱️ Timeframe: {recommendation.timeframe}
@@ -66,12 +99,19 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ recommendation,
         </div>
       )}
 
-      {recommendation.currentPrice && recommendation.upside && (
-        <div className="price-info">
-          <span>💰 Current: {recommendation.currentPrice}</span>
+      <div className="price-info">
+        {recommendation.currentPrice && (
+          <span className="current-price">💰 Current: ₹{recommendation.currentPrice}</span>
+        )}
+        {recommendation.changePercent && (
+          <span className={`change-percent ${parseFloat(String(recommendation.changePercent)) >= 0 ? 'positive' : 'negative'}`}>
+            📊 Change: {recommendation.changePercent}%
+          </span>
+        )}
+        {recommendation.upside && (
           <span className="upside">📈 Upside: {recommendation.upside}</span>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="recommendation-reason">
         💭 {recommendation.reason}

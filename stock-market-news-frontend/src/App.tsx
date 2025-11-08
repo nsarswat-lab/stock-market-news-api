@@ -14,6 +14,11 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'intraday' | 'longterm'>('intraday');
+  const [mockIndicators, setMockIndicators] = useState<{
+    news?: string;
+    intraday?: string;
+    longterm?: string;
+  }>({});
 
   const fetchNews = async () => {
     try {
@@ -21,6 +26,7 @@ function App() {
       if (!response.ok) throw new Error('Failed to fetch news');
       const data: ApiResponse<NewsItem[]> = await response.json();
       setNews(data.news || []);
+      setMockIndicators(prev => ({ ...prev, news: data.mockIndicator }));
     } catch (err) {
       console.error('Error fetching news:', err);
       setError('Failed to load news');
@@ -33,6 +39,7 @@ function App() {
       if (!response.ok) throw new Error('Failed to fetch intraday recommendations');
       const data: ApiResponse<Recommendation[]> = await response.json();
       setIntradayRecommendations(data.recommendations || []);
+      setMockIndicators(prev => ({ ...prev, intraday: data.mockIndicator }));
     } catch (err) {
       console.error('Error fetching intraday recommendations:', err);
       setError('Failed to load intraday recommendations');
@@ -45,6 +52,7 @@ function App() {
       if (!response.ok) throw new Error('Failed to fetch long-term recommendations');
       const data: ApiResponse<Recommendation[]> = await response.json();
       setLongTermRecommendations(data.recommendations || []);
+      setMockIndicators(prev => ({ ...prev, longterm: data.mockIndicator }));
     } catch (err) {
       console.error('Error fetching long-term recommendations:', err);
       setError('Failed to load long-term recommendations');
@@ -127,6 +135,7 @@ function App() {
                       key={`intraday-${rec.symbol}-${index}`} 
                       recommendation={rec} 
                       type="intraday"
+                      mockIndicator={mockIndicators.intraday}
                     />
                   ))
                 ) : (
@@ -143,6 +152,7 @@ function App() {
                       key={`longterm-${rec.symbol}-${index}`} 
                       recommendation={rec} 
                       type="longterm"
+                      mockIndicator={mockIndicators.longterm}
                     />
                   ))
                 ) : (

@@ -15,7 +15,12 @@ export interface Recommendation {
   reason: string;
   timeframe?: string;
   stopLoss?: string;
-  currentPrice?: string;
+  currentPrice?: string | number;
+  changePercent?: string | number;
+  dayHigh?: string | number;
+  dayLow?: string | number;
+  previousClose?: string | number;
+  currentVolume?: string | number;
   upside?: string;
   technicals?: {
     rsi?: string;

@@ -698,4 +698,109 @@ anced Analytics Styles */
   .risk-metrics h5, .technical-advanced h5, .options-analysis h5 {
     font-size: 0.75rem;
   }
+}/* Price In
+formation Styles */
+.price-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.current-price {
+  font-weight: 700;
+  color: #2d3748;
+  font-size: 1rem;
+}
+
+.change-percent {
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.change-percent.positive {
+  background: #c6f6d5;
+  color: #22543d;
+}
+
+.change-percent.negative {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.upside {
+  font-weight: 600;
+  color: #38a169;
+}
+
+/* Market Data Section */
+.market-data {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.market-data h4 {
+  margin: 0 0 0.75rem 0;
+  color: #2d3748;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.market-data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.5rem;
+}
+
+.market-item {
+  font-size: 0.85rem;
+  color: #4a5568;
+  font-weight: 500;
+  padding: 0.25rem 0;
+}
+
+/* Enhanced existing styles */
+.stock-symbol {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.target-price {
+  font-weight: 600;
+  color: #38a169;
+}
+
+.stop-loss {
+  font-weight: 600;
+  color: #e53e3e;
+  margin: 0.5rem 0;
+}
+
+.timeframe {
+  font-size: 0.9rem;
+  color: #4a5568;
+  margin: 0.5rem 0;
+}/* 
+Mock Indicator Styles */
+.mock-indicator {
+  background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+  color: #c53030;
+  padding: 0.5rem 1rem;
+  border-radius: 8px 8px 0 0;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: center;
+  border: 2px solid #fc8181;
+  margin: -1.5rem -1.5rem 1rem -1.5rem;
+  box-shadow: 0 2px 4px rgba(197, 48, 48, 0.1);
 }
