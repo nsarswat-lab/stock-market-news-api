@@ -46,6 +46,85 @@ public class NewsController {
     @Autowired
     private LiveMarketDataService liveMarketDataService;
     
+    @Autowired
+    private com.stockmarket.service.RealTimeStockDataService realTimeStockDataService;
+    
+    @GetMapping("/test-stock")
+    public ResponseEntity<Map<String, Object>> testStockEndpoint() {
+        logger.debug("🧪 Testing stock endpoint");
+        
+        Map<String, Object> response = Map.of(
+            "message", "Stock endpoint is working!",
+            "timestamp", System.currentTimeMillis(),
+            "status", "OK"
+        );
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/stock-simple/{symbol}")
+    public ResponseEntity<Map<String, Object>> getSimpleStockData(@PathVariable String symbol) {
+        logger.debug("📊 Getting simple stock data for: {}", symbol);
+        
+        // Use LiveMarketDataService which is working
+        double currentPrice = liveMarketDataService.getCurrentPrice(symbol.toUpperCase());
+        long volume = liveMarketDataService.getCurrentVolume(symbol.toUpperCase());
+        
+        Map<String, Object> stockData = new HashMap<>();
+        stockData.put("symbol", symbol.toUpperCase());
+        stockData.put("currentPrice", currentPrice);
+        stockData.put("volume", volume);
+        stockData.put("timestamp", System.currentTimeMillis());
+        stockData.put("source", "LiveMarketDataService");
+        stockData.put("dataSource", "BACKEND_MOCK");
+        stockData.put("mockIndicator", "🎭 MOCK DATA - NOT REAL (Real-time integration in progress)");
+        
+        return ResponseEntity.ok(stockData);
+    }
+    
+    @GetMapping("/market-data-sources")
+    public ResponseEntity<Map<String, Object>> getMarketDataSources() {
+        logger.debug("📊 Getting available market data sources");
+        
+        List<String> sources = realTimeStockDataService.getAvailableDataSources();
+        
+        Map<String, Object> response = Map.of(
+            "availableSources", sources,
+            "description", "Free authorized sources for real-time Indian stock market data",
+            "note", "API keys required for some sources (free registration)",
+            "setupInstructions", Map.of(
+                "AlphaVantage", "Get free API key from https://www.alphavantage.co/support/#api-key",
+                "TwelveData", "Get free API key from https://twelvedata.com/",
+                "YahooFinance", "No API key required (free)",
+                "NSEIndia", "No API key required (official NSE API)"
+            ),
+            "timestamp", System.currentTimeMillis()
+        );
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/stock/{symbol}")
+    public ResponseEntity<Map<String, Object>> getRealTimeStockData(@PathVariable String symbol) {
+        logger.debug("📊 Getting real-time data for stock: {}", symbol);
+        
+        try {
+            Map<String, Object> stockData = realTimeStockDataService.getRealTimeStockData(symbol.toUpperCase());
+            return ResponseEntity.ok(stockData);
+        } catch (Exception e) {
+            logger.error("❌ Error getting stock data for {}: {}", symbol, e.getMessage());
+            
+            // Return a simple error response
+            Map<String, Object> errorResponse = Map.of(
+                "error", "Failed to get stock data",
+                "symbol", symbol,
+                "message", e.getMessage(),
+                "timestamp", System.currentTimeMillis()
+            );
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
     @GetMapping("/news")
     public ResponseEntity<Map<String, Object>> getStockNews() {
         logger.debug("📈 Getting real stock news from actual news platforms");
@@ -181,17 +260,39 @@ public class NewsController {
         
         List<Map<String, Object>> recommendations = intradayTradingService.getIntradayRecommendations();
         
-        Map<String, Object> response = Map.of(
-            "dataSource", "INTRADAY_ANALYSIS",
-            "mockType", "technical-analysis",
-            "mockIndicator", "⚡ INTRADAY TRADING SIGNALS",
-            "recommendations", recommendations,
-            "tradingStyle", "INTRADAY",
-            "timeframe", "Minutes to Hours",
-            "timestamp", System.currentTimeMillis()
-        );
+        // Check if recommendations are using real-time data
+        boolean hasRealTimeData = recommendations.stream().anyMatch(rec -> {
+            try {
+                // Test if we can get real-time data for any symbol
+                String symbol = (String) rec.get("symbol");
+                if (symbol != null) {
+                    Map<String, Object> realTimeData = realTimeStockDataService.getRealTimeStockData(symbol);
+                    return "REAL_TIME_API".equals(realTimeData.get("dataSource"));
+                }
+            } catch (Exception e) {
+                // Ignore errors
+            }
+            return false;
+        });
         
-        logger.debug("⚡ INTRADAY: Returning {} recommendations", recommendations.size());
+        Map<String, Object> response = new HashMap<>();
+        if (hasRealTimeData) {
+            response.put("dataSource", "REAL_TIME_API");
+            response.put("mockType", "live-data");
+            response.put("mockIndicator", "📡 REAL DATA - Live market prices from Yahoo Finance");
+        } else {
+            response.put("dataSource", "BACKEND_MOCK");
+            response.put("mockType", "service-generated");
+            response.put("mockIndicator", "🎭 MOCK DATA - NOT REAL (Real-time APIs unavailable)");
+        }
+        
+        response.put("recommendations", recommendations);
+        response.put("tradingStyle", "INTRADAY");
+        response.put("timeframe", "Minutes to Hours");
+        response.put("timestamp", System.currentTimeMillis());
+        
+        logger.debug("⚡ INTRADAY: Returning {} recommendations with {} data", 
+                    recommendations.size(), hasRealTimeData ? "REAL-TIME" : "MOCK");
         return ResponseEntity.ok(response);
     }
     
@@ -201,17 +302,39 @@ public class NewsController {
         
         List<Map<String, Object>> recommendations = longTermInvestmentService.getLongTermRecommendations();
         
-        Map<String, Object> response = Map.of(
-            "dataSource", "FUNDAMENTAL_ANALYSIS",
-            "mockType", "investment-analysis",
-            "mockIndicator", "📈 LONG-TERM INVESTMENT ANALYSIS",
-            "recommendations", recommendations,
-            "tradingStyle", "LONG_TERM",
-            "timeframe", "12-36 Months",
-            "timestamp", System.currentTimeMillis()
-        );
+        // Check if recommendations are using real-time data
+        boolean hasRealTimeData = recommendations.stream().anyMatch(rec -> {
+            try {
+                // Test if we can get real-time data for any symbol
+                String symbol = (String) rec.get("symbol");
+                if (symbol != null) {
+                    Map<String, Object> realTimeData = realTimeStockDataService.getRealTimeStockData(symbol);
+                    return "REAL_TIME_API".equals(realTimeData.get("dataSource"));
+                }
+            } catch (Exception e) {
+                // Ignore errors
+            }
+            return false;
+        });
         
-        logger.debug("📈 LONG-TERM: Returning {} recommendations", recommendations.size());
+        Map<String, Object> response = new HashMap<>();
+        if (hasRealTimeData) {
+            response.put("dataSource", "REAL_TIME_API");
+            response.put("mockType", "live-data");
+            response.put("mockIndicator", "📡 REAL DATA - Live market prices from Yahoo Finance");
+        } else {
+            response.put("dataSource", "BACKEND_MOCK");
+            response.put("mockType", "service-generated");
+            response.put("mockIndicator", "🎭 MOCK DATA - NOT REAL (Real-time APIs unavailable)");
+        }
+        
+        response.put("recommendations", recommendations);
+        response.put("tradingStyle", "LONG_TERM");
+        response.put("timeframe", "12-36 Months");
+        response.put("timestamp", System.currentTimeMillis());
+        
+        logger.debug("📈 LONG-TERM: Returning {} recommendations with {} data", 
+                    recommendations.size(), hasRealTimeData ? "REAL-TIME" : "MOCK");
         return ResponseEntity.ok(response);
     }
     
@@ -223,9 +346,9 @@ public class NewsController {
         List<Map<String, Object>> longTermRecs = longTermInvestmentService.getLongTermRecommendations();
         
         Map<String, Object> response = Map.of(
-            "dataSource", "COMBINED_ANALYSIS",
-            "mockType", "comprehensive-analysis",
-            "mockIndicator", "🎯 COMPREHENSIVE MARKET ANALYSIS",
+            "dataSource", "BACKEND_MOCK",
+            "mockType", "service-generated",
+            "mockIndicator", "🎭 MOCK DATA - NOT REAL (Comprehensive Market Analysis)",
             "intradayRecommendations", intradayRecs,
             "longTermRecommendations", longTermRecs,
             "timestamp", System.currentTimeMillis()
