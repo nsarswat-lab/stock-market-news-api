@@ -15,6 +15,9 @@ public class LongTermInvestmentService {
     @Autowired
     private IntelligentRecommendationEngine intelligentEngine;
     
+    @Autowired
+    private LiveMarketDataService liveMarketDataService;
+    
     public List<Map<String, Object>> getLongTermRecommendations() {
         logger.debug("📈 Generating intelligent long-term investment recommendations");
         
@@ -26,8 +29,15 @@ public class LongTermInvestmentService {
             try {
                 Map<String, Object> recommendation = intelligentEngine.generateIntelligentRecommendation(symbol);
                 
-                // Add long-term specific enhancements
+                // Add current market data for long-term context
+                double currentPrice = liveMarketDataService.getCurrentPrice(symbol);
+                Map<String, Object> completeMarketData = liveMarketDataService.getCompleteMarketData(symbol);
+                
+                // Add long-term specific enhancements with current prices
                 recommendation.put("tradingStyle", "LONG_TERM");
+                recommendation.put("currentPrice", currentPrice);
+                recommendation.put("previousClose", completeMarketData.get("previousClose"));
+                recommendation.put("changePercent", completeMarketData.get("changePercent"));
                 recommendation.put("investmentHorizon", getLongTermHorizon(symbol));
                 recommendation.put("dividendYield", getDividendYield(symbol));
                 recommendation.put("growthMetrics", getGrowthMetrics(symbol));

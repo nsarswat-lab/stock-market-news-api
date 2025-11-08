@@ -42,8 +42,19 @@ public class IntradayTradingService {
             try {
                 Map<String, Object> recommendation = intelligentEngine.generateIntelligentRecommendation(symbol);
                 
-                // Add intraday-specific enhancements
+                // Add current market data
+                double currentPrice = liveMarketDataService.getCurrentPrice(symbol);
+                long currentVolume = liveMarketDataService.getCurrentVolume(symbol);
+                Map<String, Object> completeMarketData = liveMarketDataService.getCompleteMarketData(symbol);
+                
+                // Add intraday-specific enhancements with current prices
                 recommendation.put("tradingStyle", "INTRADAY");
+                recommendation.put("currentPrice", currentPrice);
+                recommendation.put("currentVolume", currentVolume);
+                recommendation.put("dayHigh", completeMarketData.get("dayHigh"));
+                recommendation.put("dayLow", completeMarketData.get("dayLow"));
+                recommendation.put("previousClose", completeMarketData.get("previousClose"));
+                recommendation.put("changePercent", completeMarketData.get("changePercent"));
                 recommendation.put("marketSession", getCurrentMarketSession());
                 recommendation.put("volumeProfile", getVolumeProfile(symbol));
                 recommendation.put("intradayLevels", getIntradayLevels(symbol));
